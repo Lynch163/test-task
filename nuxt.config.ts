@@ -20,6 +20,11 @@ export default defineNuxtConfig({
       ]
     }
   },
+  nitro: {
+    output: {
+      publicDir: 'docs'
+    }
+  },
   ssr: false,
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
