@@ -1,86 +1,95 @@
 <script setup lang="ts">
-import {onMounted} from "vue";
-import {$fetch} from "ofetch";
+import { ref, computed, onMounted } from "vue";
+import { $fetch } from "ofetch";
+import type {ContentItemI} from "@/helpers/types";
 
-interface contentItemI {
-  createdAt: String,
-  description: String,
-  id: String,
-  image: String,
-  preview: String,
-  title: String
-}
+const content = ref<ContentItemI[]>([]);
+const currentPage = ref(1);
+const itemsPerPage = 8;
+const maxPagesToShow = 5;
+const startPage = ref(1); // Начальная страница в диапазоне отображаемых страниц
+const router = useRouter();
 
-const content = ref([]);
-
-onMounted(()=>{
+onMounted(() => {
   getContent();
-})
+});
 
-const getContent = async() => {
+const getContent = async () => {
   try {
     content.value = await $fetch('https://6082e3545dbd2c001757abf5.mockapi.io/qtim-test-work/posts/');
   } catch (e) {
     console.error(e);
   }
-}
+};
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+
+const nextPages = () => {
+  const nextStartPage = startPage.value + maxPagesToShow;
+  if (nextStartPage <= totalPages.value) {
+    startPage.value = nextStartPage;
+  }
+};
+
+const prevPages = () => {
+  const prevStartPage = startPage.value - maxPagesToShow;
+  if (prevStartPage >= 1) {
+    startPage.value = prevStartPage;
+  }
+};
+
+const totalPages = computed(() => Math.ceil(content.value.length / itemsPerPage));
+
+const paginatedContent = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return content.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const endPage = Math.min(startPage.value + maxPagesToShow - 1, totalPages.value);
+  for (let i = startPage.value; i <= endPage; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
 </script>
 
 <template>
-<header style="padding: 40px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 120px" >
-  <img src="/images/qtim-logo.svg" alt="logo">
-
-  <div class="nav-group" style="display: flex; align-items: center">
-    <div class="menu" style="margin-right: 90px; font-size: 20px">
-      <span style="margin-right: 60px">Works</span>
-      <span>About</span>
+    <h1 style="font-size: 84px; font-weight: 400; margin: 0 0 40px">Articles</h1>
+    <div class="content" style="display: flex; flex-wrap: wrap; row-gap: 40px; column-gap: 20px; margin-bottom: 50px">
+      <div v-for="item in paginatedContent" :key="item.id" style="width: 20%; cursor: pointer" @click="router.push(item.id)">
+        <img :src="item.image" @error="$event.target.src = '/images/qtim-logo.svg'" alt="content_image" style="width: 100%; height: 50%; min-height: 135px">
+        <div>{{ item.description }}</div>
+      </div>
     </div>
-    <div class="buttons" style="display: flex; align-items: center">
-      <img src="/images/united-kingdom-ico.svg" alt="lang-ico"
-           style="
-           margin-right: 16px;
-           cursor: pointer;
-           padding: 10px;
-           /*border: 2px solid #0000001A;*/
-           border-radius: 999px;
-           "
-      />
-      <button>Let’s work</button>
+    <div class="pagination">
+      <button v-if="startPage > 1" @click="prevPages" style="padding: 16px; border: 1px solid gray; border-radius: 12px; cursor: pointer; margin-right: 8px">‹</button>
+      <button
+          v-for="page in visiblePages"
+          :key="page"
+          @click="goToPage(page)"
+          :style="{
+            fontWeight: currentPage === page ? 'bold' : 'normal',
+            'background-color': currentPage === page ? '#101010' : '#F3F3F3',
+            color: currentPage === page ? '#FFFFFF' : '#000000',
+            padding: '16px',
+            border: 'none',
+            'margin-right': '8px',
+            'border-radius': '12px',
+            cursor: 'pointer'
+           }"
+      >
+        {{ page }}
+      </button>
+      <button v-if="startPage + maxPagesToShow <= totalPages" @click="nextPages" style="padding: 16px; border: 1px solid gray; border-radius: 12px; cursor: pointer">›</button>
     </div>
-  </div>
-</header>
-<main style="padding: 0 112px; margin-bottom: 140px;">
-  <h1 style="font-size: 84px; font-weight: 400; margin: 0 0 40px;">Articles</h1>
-  <div class="content" style="display: flex; flex-wrap: wrap; row-gap: 40px; column-gap: 20px">
-    <div v-for="item in content" :key="item.id" style="width: 20%">
-      <img :src="item.image" alt="content_image" style="width: 100%; height: 50%">
-      <div>{{ item.description }}</div>
-    </div>
-  </div>
-</main>
-
-<!--  <footer class="footer">-->
-<!--    <div class="container">-->
-<!--      <p>Follow us on <a href="#">Facebook</a>, <a href="#">Instagram</a>, and <a href="#">Telegram</a>.</p>-->
-<!--    </div>-->
-<!--  </footer>-->
 </template>
 
 <style lang="scss" scoped>
-button {
-  padding: 16px 32px;
-  background-color: #101010;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 400;
-  border-radius: 999px;
-  cursor: pointer;
-  border: none;
-}
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
-}
 </style>
