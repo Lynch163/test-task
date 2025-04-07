@@ -61,35 +61,64 @@ const visiblePages = computed(() => {
 </script>
 
 <template>
-    <h1 style="font-size: 84px; font-weight: 400; margin: 0 0 40px">Articles</h1>
-    <div class="content" style="display: flex; flex-wrap: wrap; row-gap: 40px; column-gap: 20px; margin-bottom: 50px">
-      <div v-for="item in paginatedContent" :key="item.id" style="width: 20%; cursor: pointer" @click="router.push(item.id)">
-        <img :src="item.image" @error="$event.target.src = '/images/qtim-logo.svg'" alt="content_image" style="width: 100%; height: 50%; min-height: 135px">
-        <div>{{ item.description }}</div>
+    <h1 class="title">Articles</h1>
+    <div class="content">
+      <div v-for="item in paginatedContent" :key="item.id" @click="router.push(item.id)">
+        <img :src="item.image" @error="$event.target.src = '/images/qtim-logo.svg'" alt="content_image">
+        <span>{{ item.description }}</span>
       </div>
     </div>
     <div class="pagination">
-      <button v-if="startPage > 1" @click="prevPages" style="padding: 16px; border: 1px solid gray; border-radius: 12px; cursor: pointer; margin-right: 8px">‹</button>
+      <button v-if="startPage > 1" @click="prevPages" style="border: 1px solid gray">‹</button>
       <button
           v-for="page in visiblePages"
           :key="page"
           @click="goToPage(page)"
           :style="{
-            fontWeight: currentPage === page ? 'bold' : 'normal',
+            'font-weight': currentPage === page ? 'bold' : 'normal',
             'background-color': currentPage === page ? '#101010' : '#F3F3F3',
-            color: currentPage === page ? '#FFFFFF' : '#000000',
-            padding: '16px',
-            border: 'none',
-            'margin-right': '8px',
-            'border-radius': '12px',
-            cursor: 'pointer'
+            color: currentPage === page ? '#FFFFFF' : '#000000'
            }"
       >
         {{ page }}
       </button>
-      <button v-if="startPage + maxPagesToShow <= totalPages" @click="nextPages" style="padding: 16px; border: 1px solid gray; border-radius: 12px; cursor: pointer">›</button>
+      <button v-if="startPage + maxPagesToShow <= totalPages" @click="nextPages" style="border: 1px solid gray">›</button>
     </div>
 </template>
 
 <style lang="scss" scoped>
+.title {
+  font-size: 84px;
+  font-weight: 400;
+  margin: 0 0 40px;
+}
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 40px;
+  column-gap: 20px;
+  margin-bottom: 50px;
+  & div {
+    width: 24%;
+    cursor: pointer;
+    & img {
+      width: 100%;
+      height: 50%;
+      min-height: 135px;
+    }
+  }
+}
+
+.pagination {
+  & button {
+    border-width: 0;
+    cursor: pointer;
+    padding: 16px;
+    border-radius: 12px;
+  }
+  & > *:not(:last-child) {
+    border: none;
+    margin-right: 8px;
+  }
+}
 </style>
